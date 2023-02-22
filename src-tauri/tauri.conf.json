@@ -20,7 +20,7 @@
       "http": {
         "all": true,
         "request": true,
-        "scope": ["https://od-api.oxforddictionaries.com/*"]
+        "scope": ["https://od-api.oxforddictionaries.com/*", "https://api.openai.com/*"]
       }
     },
     "bundle": {

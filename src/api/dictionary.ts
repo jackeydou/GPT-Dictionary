@@ -1,5 +1,5 @@
 import { singletonClient } from './client';
-import type { DictionaryStruct, WordStruct } from '../types/dictionary';
+import type { DictionaryStruct, WordResult, WordStruct } from '../types/dictionary';
 
 export const DICTIONARY_HOST = 'https://od-api.oxforddictionaries.com';
 
@@ -20,7 +20,7 @@ function getOxfordDictionaryUrl(word: string) {
   return `${host}${path}${word}?${query}`;
 }
 
-export async function fetchWord() {
+export async function fetchWord(word: string): Promise<WordResult[]> {
   // const res: DictionaryStruct = await (await singletonClient()).get(getOxfordDictionaryUrl(word), {
   //   headers: {
   //     'app_id': APP_ID,
@@ -33,6 +33,6 @@ export async function fetchWord() {
   //   return null;
   // }
   const res = Promise.resolve(mockData as DictionaryStruct);
-  console.log('ace: ', mockData)
-  return (await res).data;
+  console.log('ace: ', mockData.data)
+  return (await res).data.results;
 }

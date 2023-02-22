@@ -1,50 +1,69 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/tauri";
+import { openAIWordConversationApi } from './api/openai';
+import { fetchWord } from './api/dictionary';
+import Loading from './components/loading';
+import WordDetail from './components/word_detail';
+import { WordResult } from "./types/dictionary";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [word, setWord] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [wordDefination, setWordDefination] = useState<WordResult[]>([]);
+  const [conversation, setConversation] = useState<string[]>([]);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+  const fetchWordDefination = async () => {
+    const result = await fetchWord(word);
+    setWordDefination(result);
+  }
+
+  const fetchConversation = async () => {
+    setConversation(await openAIWordConversationApi(word));
+  }
+  const search = () => {
+    fetchWordDefination();
   }
 
   return (
-    <div className="container">
-      <h1>Welcome to Tauri!</h1>
-
+    <div className="flex max-w-5xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
       <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <div className="row">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            greet();
-          }}
+        <input
+          id="greet-input"
+          onChange={(e) => setWord(e.currentTarget.value)}
+          placeholder="Enter a word..."
+          className="rounded-md border border-gray-300 shadow-sm focus:border-black focus:ring-black my-5 py-2 px-3 outline-none"
+        />
+        <button 
+          type="submit" 
+          className="ml-4 bg-black rounded-md text-white font-medium px-4 py-2 hover:bg-black/80"
+          onClick={search}
         >
-          <input
-            id="greet-input"
-            onChange={(e) => setName(e.currentTarget.value)}
-            placeholder="Enter a name..."
-          />
-          <button type="submit">Greet</button>
-        </form>
+          {!loading ? <span>Search</span> : <Loading color="#fff" style="normal" /> }
+        </button>
       </div>
-      <p>{greetMsg}</p>
+      {wordDefination.length > 0 && <div className="max-w-2xl w-full rounded-xl border shadow-md p-4">
+        <p className="sm:text-xl text-xl max-w-2xl text-slate-900">
+          The defination of
+          <i className="font-bold"> {word}</i>
+        </p>
+        <div className="divide-y">
+          {
+            wordDefination.map(it => (<WordDetail word={it} />))
+          }
+        </div>
+      </div>}
+      {conversation.length > 0 && (
+        <div className="max-w-2xl w-full rounded-xl border shadow-md p-4">
+          <p className="sm:text-xl text-xl max-w-2xl text-slate-900">
+            The usage of
+            <i className="font-bold"> {word}</i>
+          </p>
+          <div className="max-w-2xl w-full rounded-xl border shadow-md p-4 hover:bg-gray-100 transition">
+            {conversation.map((c, i) => {
+              return (<p key={i}>{c}</p>)
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
