@@ -7,6 +7,7 @@ import { WordResult } from "./types/dictionary";
 
 function App() {
   const [word, setWord] = useState("");
+  const [previousWord, setPreviousWord] = useState("");
   const [loading, setLoading] = useState(false);
   const [wordDefination, setWordDefination] = useState<WordResult[]>([]);
   const [conversation, setConversation] = useState<string[]>([]);
@@ -19,13 +20,20 @@ function App() {
   const fetchConversation = async () => {
     setConversation(await openAIWordConversationApi(word));
   }
-  const search = () => {
-    fetchWordDefination();
+  const search = async () => {
+    if(word === previousWord) {
+      return;
+    }
+    setLoading(true);
+    await fetchWordDefination();
+    setPreviousWord(word);
+    setLoading(false);
+    await fetchConversation();
   }
 
   return (
-    <div className="flex max-w-5xl mx-auto flex-col items-center justify-center py-2 min-h-screen">
-      <div className="row">
+    <div className="flex max-w-5xl mx-auto flex-col items-center py-2 min-h-screen">
+      <div className="mt-60 transition-all duration-400" style={wordDefination.length > 0 ? { marginTop: 0 } : {}}>
         <input
           id="greet-input"
           onChange={(e) => setWord(e.currentTarget.value)}
@@ -40,30 +48,29 @@ function App() {
           {!loading ? <span>Search</span> : <Loading color="#fff" style="normal" /> }
         </button>
       </div>
-      {wordDefination.length > 0 && <div className="max-w-2xl w-full rounded-xl border shadow-md p-4">
+      <div className="max-w-2xl w-full rounded-xl border shadow-md p-4 transition-opacity duration-300 delay-200 ease-in-out" style={{opacity: wordDefination.length > 0 ? 1 : 0}}>
         <p className="sm:text-xl text-xl max-w-2xl text-slate-900">
           The defination of
-          <i className="font-bold"> {word}</i>
+          <i className="font-bold"> {previousWord}</i>
         </p>
         <div className="divide-y">
           {
-            wordDefination.map(it => (<WordDetail word={it} />))
+            wordDefination.map((it, idx) => (<WordDetail word={it} key={it.id + idx} />))
           }
         </div>
-      </div>}
-      {conversation.length > 0 && (
-        <div className="max-w-2xl w-full rounded-xl border shadow-md p-4">
-          <p className="sm:text-xl text-xl max-w-2xl text-slate-900">
-            The usage of
-            <i className="font-bold"> {word}</i>
-          </p>
-          <div className="max-w-2xl w-full rounded-xl border shadow-md p-4 hover:bg-gray-100 transition">
-            {conversation.map((c, i) => {
-              return (<p key={i}>{c}</p>)
-            })}
-          </div>
-        </div>
-      )}
+      </div>
+      <div className="max-w-2xl w-full rounded-xl border shadow-md p-4 hover:bg-gray-50 transition-opacity duration-300 delay-300 mt-4 ease-in-out" style={{opacity: wordDefination.length > 0 ? 1 : 0}}>
+        <p className="sm:text-xl text-xl max-w-2xl text-slate-900">
+          The usage of
+          <i className="font-bold"> {previousWord}</i>
+        </p>
+        {conversation.length > 0 ? ( <div className="max-w-2xl w-full p-4">
+          {conversation.map((c, i) => {
+            return (<p key={i} className="leading-7">{c}</p>)
+          })}
+        </div>) : <div className="w-full flex justify-center"><Loading color="#000" style=""/></div>}
+       
+      </div>
     </div>
   );
 }

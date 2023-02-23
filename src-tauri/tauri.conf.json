@@ -65,10 +65,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
-        "resizable": true,
+        "height": 750,
+        "resizable": false,
         "title": "GPT-Dictionary",
-        "width": 800
+        "width": 1000
       }
     ]
   }
