@@ -3,6 +3,7 @@ import { openAIWordConversationApi } from './api/openai';
 import { fetchWord } from './api/dictionary';
 import Loading from './components/loading';
 import WordDetail from './components/word_detail';
+import BuyMeACoffee from './components/buymeacoffee';
 import { WordResult } from "./types/dictionary";
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
 
   return (
     <div className="flex max-w-5xl mx-auto flex-col items-center py-2 min-h-screen">
+      <BuyMeACoffee />
       <div className="mt-60 transition-all duration-400" style={wordDefination.length > 0 ? { marginTop: 0 } : {}}>
         <input
           id="greet-input"
