@@ -21,6 +21,9 @@
         "all": true,
         "request": true,
         "scope": ["https://od-api.oxforddictionaries.com/*", "https://api.openai.com/*"]
+      },
+      "globalShortcut": {
+        "all": true
       }
     },
     "bundle": {

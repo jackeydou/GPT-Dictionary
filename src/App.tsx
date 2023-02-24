@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { openAIWordConversationApi } from './api/openai';
 import { fetchWord } from './api/dictionary';
 import Loading from './components/loading';
@@ -31,6 +31,17 @@ function App() {
     setLoading(false);
     await fetchConversation();
   }
+
+  useEffect(() => {
+    document.addEventListener('keyup', (e) => {
+      if (e.code === 'Enter' && word) {
+        search()
+      }
+    });
+    return () => {
+      document.removeEventListener('keyup', () => {});
+    }
+  }, [])
 
   return (
     <div className="flex max-w-5xl mx-auto flex-col items-center py-2 min-h-screen">
