@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
+import { invoke } from "@tauri-apps/api/tauri";
+import { readText } from '@tauri-apps/api/clipboard';
+
 import { openAIWordConversationApi } from './api/openai';
 import { fetchWord } from './api/dictionary';
 import Loading from './components/loading';
 import WordDetail from './components/word_detail';
-import BuyMeACoffee from './components/buymeacoffee';
 import Menu from './components/menu';
+import { checkShortcurRegistered, KeyboardMap, registerShortcut, unregisterShortcut } from './utils/shortcut';
 import { WordResult } from "./types/dictionary";
+
 
 function App() {
   const [word, setWord] = useState("");
@@ -34,6 +38,22 @@ function App() {
   }
 
   useEffect(() => {
+    const shortcutKey = `${KeyboardMap.option}+S`;
+    checkShortcurRegistered(shortcutKey).then(registered => {
+      if (!registered) {
+        console.log('register: ', registered)
+        registerShortcut(shortcutKey, (shortcut) => {
+          console.log('register: ', shortcut)
+          if (shortcut === shortcutKey) {
+    
+            invoke("app_focus_and_copy_selection").then(async _ => {
+              // const text = await readText();
+              // console.log('get selection: ', text);
+            })
+          }
+        });
+      }
+    })
     document.addEventListener('keyup', (e) => {
       if (e.code === 'Enter' && word) {
         search()
@@ -41,12 +61,12 @@ function App() {
     });
     return () => {
       document.removeEventListener('keyup', () => {});
+      // unregisterShortcut(shortcutKey);
     }
   }, [])
 
   return (
     <div className="flex max-w-5xl mx-auto flex-col items-center py-2 min-h-screen">
-      {/* <BuyMeACoffee /> */}
       <Menu />
       <div className="mt-60 transition-all duration-400" style={wordDefination.length > 0 ? { marginTop: 0 } : {}}>
         <input

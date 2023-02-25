@@ -24,6 +24,15 @@
       },
       "globalShortcut": {
         "all": true
+      },
+      "app": {
+        "all": true,
+        "show": true
+      },
+      "clipboard": {
+        "all": true,
+        "writeText": true,
+        "readText": true
       }
     },
     "bundle": {
