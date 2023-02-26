@@ -5,6 +5,25 @@ interface IProps {
   word: WordResult;
 }
 
+function lexicalCategoryColor(type: string) {
+  switch (type) {
+    case 'noun': {
+      return 'bg-teal-100';
+    }
+    case 'adjective': {
+      return 'bg-lime-100';
+    }
+
+    case 'verb': {
+      return 'bg-amber-100';
+    }
+
+    default: {
+      return 'bg-neutral-100';
+    }
+  }
+}
+
 export default function WordDetail(props: IProps) {
   const { word } = props;
   const { lexicalEntries } = word;
@@ -14,7 +33,7 @@ export default function WordDetail(props: IProps) {
         return (
           <div key={entry?.lexicalCategory?.id + idx} className="py-2 px-2 cursor-pointer transition-colors hover:bg-gray-50 rounded-md">
             <div className="flex items-center">
-              <div className="px-2 py-1 rounded-full bg-teal-100 mr-2">{entry.lexicalCategory?.id}</div>
+              <div className={`px-2 py-1 rounded-full ${lexicalCategoryColor(entry.lexicalCategory?.id)} mr-2`}>{entry.lexicalCategory?.id}</div>
               <div>
                 {entry.entries?.map((it, idx) => {
                   return (

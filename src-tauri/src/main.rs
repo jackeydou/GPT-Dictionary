@@ -3,7 +3,7 @@
     windows_subsystem = "windows"
 )]
 
-use enigo::*;
+// use enigo::*;
 mod accessibility;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -18,16 +18,13 @@ async fn app_focus_and_copy_selection(window: tauri::Window) {
     let trusted = accessibility::query_accessibility_permissions();
     if trusted {
         // copy
-        // let thread_handle = std::thread::spawn(|| {
-            // enigo.key_down(Key::Meta);
-            // std::thread::sleep(Duration::from_secs(1));
-            // // enigo.key_click(Key::Layout('c'));
-            // // std::thread::sleep(Duration::from_secs(1));
-            // enigo.key_up(Key::Meta);
-            // enigo.key_sequence_parse("{+META}c{-META}");
+        // enigo will cause app crash now, comment out
+        // related issue: https://github.com/enigo-rs/enigo/issues/153
 
-        // });
-        // thread_handle.join().unwrap();
+        // enigo.key_down(Key::Meta);
+        // enigo.key_click(Key::Layout('c'));
+        // enigo.key_up(Key::Meta);
+
         window.set_focus().unwrap();
     }
 }
