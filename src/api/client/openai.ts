@@ -1,7 +1,7 @@
 import { Body } from "@tauri-apps/api/http";
 import { singletonClient } from './client';
-import { removeNewlines, newLineReg } from '../utils';
-import type { OpenAIResponse } from '../types/openai';
+import { removeNewlines, newLineReg } from '../../utils';
+import type { OpenAIResponse } from '../../types/openai';
 
 export const OPEN_AI_HOST = "https://api.openai.com";
 

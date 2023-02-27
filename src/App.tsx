@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
-import { readText } from '@tauri-apps/api/clipboard';
+// import { invoke } from "@tauri-apps/api/tauri";
 
-import { openAIWordConversationApi } from './api/openai';
-import { fetchWord } from './api/dictionary';
+import { openAIWordConversationApi, fetchWord } from './api';
 import Loading from './components/loading';
 import WordDetail from './components/word_detail';
 import Menu from './components/menu';
-import { checkShortcurRegistered, KeyboardMap, registerShortcut, unregisterShortcut } from './utils/shortcut';
+// import { checkShortcurRegistered, KeyboardMap, registerShortcut, unregisterShortcut } from './utils/shortcut';
 import { WordResult } from "./types/dictionary";
 
 
@@ -38,22 +36,22 @@ function App() {
   }
 
   useEffect(() => {
-    const shortcutKey = `${KeyboardMap.option}+S`;
-    checkShortcurRegistered(shortcutKey).then(registered => {
-      if (!registered) {
-        console.log('register: ', registered)
-        registerShortcut(shortcutKey, (shortcut) => {
-          console.log('register: ', shortcut)
-          if (shortcut === shortcutKey) {
+    // const shortcutKey = `${KeyboardMap.option}+S`;
+    // checkShortcurRegistered(shortcutKey).then(registered => {
+    //   if (!registered) {
+    //     console.log('register: ', registered)
+    //     registerShortcut(shortcutKey, (shortcut) => {
+    //       console.log('register: ', shortcut)
+    //       if (shortcut === shortcutKey) {
     
-            invoke("app_focus_and_copy_selection").then(async _ => {
-              // const text = await readText();
-              // console.log('get selection: ', text);
-            })
-          }
-        });
-      }
-    })
+    //         invoke("app_focus_and_copy_selection").then(async _ => {
+    //           // const text = await readText();
+    //           // console.log('get selection: ', text);
+    //         })
+    //       }
+    //     });
+    //   }
+    // })
     document.addEventListener('keyup', (e) => {
       if (e.code === 'Enter' && word) {
         search()

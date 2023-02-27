@@ -1,5 +1,5 @@
 import { singletonClient } from './client';
-import type { DictionaryStruct, WordResult, WordStruct } from '../types/dictionary';
+import type { DictionaryStruct, WordResult, WordStruct } from '../../types/dictionary';
 
 export const DICTIONARY_HOST = 'https://od-api.oxforddictionaries.com';
 
