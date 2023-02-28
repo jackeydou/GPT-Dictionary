@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 // import { invoke } from "@tauri-apps/api/tauri";
 
 import { openAIWordConversationApi, fetchWord } from './api';
@@ -11,6 +11,7 @@ import { WordResult } from "./types/dictionary";
 
 function App() {
   const [word, setWord] = useState("");
+  const wordRef = useRef("");
   const [previousWord, setPreviousWord] = useState("");
   const [loading, setLoading] = useState(false);
   const [wordDefination, setWordDefination] = useState<WordResult[]>([]);
@@ -25,14 +26,19 @@ function App() {
     setConversation(await openAIWordConversationApi(word));
   }
   const search = async () => {
-    if(word === previousWord) {
+    if(wordRef.current === previousWord) {
       return;
     }
     setLoading(true);
-    await fetchWordDefination();
-    setPreviousWord(word);
-    setLoading(false);
-    await fetchConversation();
+    try {
+      setConversation([]);
+      await fetchWordDefination();
+      setPreviousWord(wordRef.current);
+      setLoading(false);
+      await fetchConversation();
+    } catch (error) {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -53,7 +59,7 @@ function App() {
     //   }
     // })
     document.addEventListener('keyup', (e) => {
-      if (e.code === 'Enter' && word) {
+      if (e.code === 'Enter' && wordRef.current) {
         search()
       }
     });
@@ -63,13 +69,19 @@ function App() {
     }
   }, [])
 
+  const onWordChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    const input = e.currentTarget.value;
+    setWord(input);
+    wordRef.current = input;
+  }
+
   return (
     <div className="flex max-w-5xl mx-auto flex-col items-center py-2 min-h-screen">
       <Menu />
       <div className="mt-60 transition-all duration-400" style={wordDefination.length > 0 ? { marginTop: 0 } : {}}>
         <input
           id="greet-input"
-          onChange={(e) => setWord(e.currentTarget.value)}
+          onChange={onWordChange}
           placeholder="Enter a word..."
           className="rounded-md border border-gray-300 shadow-sm focus:border-black focus:ring-black my-5 py-2 px-3 outline-none"
         />

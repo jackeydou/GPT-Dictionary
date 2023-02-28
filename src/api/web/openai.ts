@@ -24,3 +24,33 @@ export async function openAIWordConversationApi(
   const result = removeNewlines(data.choices?.[0].text)?.split('-').filter(it => Boolean(it));
   return result;
 }
+
+// for Dev
+export const OPEN_AI_KEY = import.meta.env.VITE_OPEN_AI_KEY;
+
+export async function openAIWordConversationApiDev(
+  word: string,
+) {
+
+  const url = `${OPEN_AI_HOST}/v1/completions`;
+  const response = await axios.post<OpenAIResponse>(url, {
+    model: "text-davinci-003",
+    prompt: getConversationPrompt(word),
+    max_tokens: 1000,
+    temperature: 0,
+    top_p: 1,
+    n: 1,
+    stream: false,
+    logprobs: null,
+    stop: "$$",
+  }, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPEN_AI_KEY}`,
+    },
+  });
+  const { data } = response;
+  const result = removeNewlines(data.choices?.[0].text)?.split('-').filter(it => Boolean(it));
+  return result;
+}
+
