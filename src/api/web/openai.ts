@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { removeNewlines } from '../../utils';
-import type { OpenAIResponse } from '../../types/openai';
+import type { OpenAIResponse, OpenAITurboResponse } from '../../types/openai';
 
 export const OPEN_AI_HOST = "https://api.openai.com";
 
@@ -13,7 +13,7 @@ export async function openAIWordConversationApi(
   word: string,
 ) {
 
-  const response = await axios.post<OpenAIResponse>('/api/openai', {
+  const response = await axios.post<OpenAITurboResponse>('/api/openai', {
     prompt: getConversationPrompt(word),
   }, {
     headers: {
@@ -21,7 +21,7 @@ export async function openAIWordConversationApi(
     },
   });
   const { data } = response;
-  const result = removeNewlines(data.choices?.[0].text)?.split('-').filter(it => Boolean(it));
+  const result = removeNewlines(data.choices?.[0].message?.content ?? '')?.split('-').filter(it => Boolean(it));
   return result;
 }
 
