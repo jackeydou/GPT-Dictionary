@@ -2,20 +2,26 @@ import { useState, useEffect, useRef } from "react";
 // import { invoke } from "@tauri-apps/api/tauri";
 
 import { openAIWordConversationApi, fetchWord } from './api';
+import { setOpenAIKey } from './api/web/openai';
 import Loading from './components/loading';
 import WordDetail from './components/word_detail';
 import Menu from './components/menu';
-// import { checkShortcurRegistered, KeyboardMap, registerShortcut, unregisterShortcut } from './utils/shortcut';
+import OpenAIKeyModal from './components/openai_key';
 import { WordResult } from "./types/dictionary";
 
 
 function App() {
   const [word, setWord] = useState("");
   const wordRef = useRef("");
+  const conversationRef = useRef("");
   const [previousWord, setPreviousWord] = useState("");
   const [loading, setLoading] = useState(false);
   const [wordDefination, setWordDefination] = useState<WordResult[]>([]);
-  const [conversation, setConversation] = useState<string[]>([]);
+  const [conversation, setConversation] = useState<string>("");
+  const [openaiKeyInfo, setOpenAIKeyInfo] = useState({
+    openaiKeyModalVisible: false,
+    setOpenaiKeyTipVisible: false,
+  });
 
   const fetchWordDefination = async () => {
     const result = await fetchWord(word);
@@ -23,15 +29,31 @@ function App() {
   }
 
   const fetchConversation = async () => {
-    setConversation(await openAIWordConversationApi(word));
+    await openAIWordConversationApi(word, (key: string | null) => {
+      if (typeof key === 'string') {
+        key = key.replace('$$', '<br />');
+        console.log(key);
+        conversationRef.current = `${conversationRef.current}${key}`;
+        setConversation(conversationRef.current);
+      }
+    });
   }
+
   const search = async () => {
+    if (openaiKeyInfo.setOpenaiKeyTipVisible && !openaiKeyInfo.openaiKeyModalVisible) {
+      setOpenAIKeyInfo({
+        ...openaiKeyInfo,
+        openaiKeyModalVisible: true
+      });
+      return;
+    }
     if(wordRef.current === previousWord) {
       return;
     }
     setLoading(true);
     try {
-      setConversation([]);
+      setConversation("");
+      conversationRef.current = "";
       await fetchWordDefination();
       setPreviousWord(wordRef.current);
       setLoading(false);
@@ -58,14 +80,23 @@ function App() {
     //     });
     //   }
     // })
+    
+    const apiKey = localStorage.getItem('openai-api-key');
+    if (apiKey) {
+      setOpenAIKey(apiKey);
+    } else {
+      setOpenAIKeyInfo({
+        ...openaiKeyInfo,
+        setOpenaiKeyTipVisible: true
+      })
+    }
     document.addEventListener('keyup', (e) => {
       if (e.code === 'Enter' && wordRef.current) {
-        search()
+        search();
       }
     });
     return () => {
       document.removeEventListener('keyup', () => {});
-      // unregisterShortcut(shortcutKey);
     }
   }, [])
 
@@ -74,6 +105,13 @@ function App() {
     setWord(input);
     wordRef.current = input;
   }
+
+  const showOpenAIKeyModal = () => {
+    setOpenAIKeyInfo({
+      ...openaiKeyInfo,
+      openaiKeyModalVisible: true
+    })
+  };
 
   return (
     <div className="flex max-w-5xl mx-auto flex-col items-center py-2 min-h-screen">
@@ -93,6 +131,7 @@ function App() {
           {!loading ? <span>Search</span> : <Loading color="#fff" style="normal" /> }
         </button>
       </div>
+      {openaiKeyInfo.setOpenaiKeyTipVisible && <p className="cursor-pointer underline text-slate-500 hover:text-black" onClick={showOpenAIKeyModal}>Set your own open ai key here</p>}
       <div className="max-w-2xl w-full rounded-xl border shadow-md p-4 transition-opacity duration-300 delay-200 ease-in-out" style={{opacity: wordDefination.length > 0 ? 1 : 0}}>
         <p className="sm:text-xl text-xl max-w-2xl text-slate-900">
           The defination of
@@ -109,13 +148,25 @@ function App() {
           The usage of
           <i className="font-bold"> {previousWord}</i>
         </p>
-        {conversation.length > 0 ? ( <div className="max-w-2xl w-full p-4">
-          {conversation.map((c, i) => {
-            return (<p key={i} className="leading-7">{c}</p>)
-          })}
+        {conversation.length > 0 ? (<div className="max-w-2xl w-full p-4">
+          <p className="leading-7" dangerouslySetInnerHTML={{__html: conversation}}></p>
         </div>) : <div className="w-full flex justify-center"><Loading color="#000" style=""/></div>}
-       
       </div>
+      <OpenAIKeyModal 
+        isOpen={openaiKeyInfo.openaiKeyModalVisible} 
+        closeModal={() => setOpenAIKeyInfo({
+          ...openaiKeyInfo,
+          openaiKeyModalVisible: false
+        })}
+        onSave={(key: string) => {
+          localStorage.setItem('openai-api-key', key);
+          setOpenAIKey(key);
+          setOpenAIKeyInfo({
+            openaiKeyModalVisible: false,
+            setOpenaiKeyTipVisible: false
+          })
+        }}
+      />
     </div>
   );
 }

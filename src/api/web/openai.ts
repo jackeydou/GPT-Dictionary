@@ -1,56 +1,61 @@
-import axios from 'axios';
-import { removeNewlines } from '../../utils';
-import type { OpenAIResponse, OpenAITurboResponse } from '../../types/openai';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 export const OPEN_AI_HOST = "https://api.openai.com";
 
 
 function getConversationPrompt(word: string) {
-  return `Using the word: ${word}, generate daily and work conversations between Alice and Bob, reflecting the way the word is commonly used, with a '-' symbol in front of Alice and Bob's names to distinguish them$$`;
+  return `Using the word: ${word}, generate daily or work conversations between Alice and Bob, reflecting the way the word is commonly used, add a $$ symbol to the end of each sentence of alice and bob and do not need to emphasize whether it's daily or work, just show the conversation`;
 }
+
+
+let OPEN_AI_KEY = ''; // import.meta.env.VITE_OPEN_AI_KEY;
+export function setOpenAIKey(key: string) {
+  OPEN_AI_KEY = key;
+}
+
 
 export async function openAIWordConversationApi(
   word: string,
+  onmessage: (data: string | null) => void,
 ) {
-
-  const response = await axios.post<OpenAITurboResponse>('/api/openai', {
-    prompt: getConversationPrompt(word),
-  }, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  const { data } = response;
-  const result = removeNewlines(data.choices?.[0].message?.content ?? '')?.split('-').filter(it => Boolean(it));
-  return result;
-}
-
-// for Dev
-export const OPEN_AI_KEY = import.meta.env.VITE_OPEN_AI_KEY;
-
-export async function openAIWordConversationApiDev(
-  word: string,
-) {
-
-  const url = `${OPEN_AI_HOST}/v1/completions`;
-  const response = await axios.post<OpenAIResponse>(url, {
-    model: "text-davinci-003",
-    prompt: getConversationPrompt(word),
-    max_tokens: 1000,
-    temperature: 0,
-    top_p: 1,
-    n: 1,
-    stream: false,
-    logprobs: null,
-    stop: "$$",
-  }, {
+  if (!OPEN_AI_KEY) {
+    return;
+  }
+  const url = `${OPEN_AI_HOST}/v1/chat/completions`;
+  await fetchEventSource(url, {
+    method: 'POST',
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${OPEN_AI_KEY}`,
     },
+    body: JSON.stringify({
+      model: "gpt-3.5-turbo",
+      messages: [{
+        role: "user",
+        content: getConversationPrompt(word),
+      }],
+      max_tokens: 1000,
+      temperature: 0,
+      top_p: 1,
+      n: 1,
+      stream: true,
+    }),
+    onmessage: (event) => {
+      let data: string | null = '';
+      if (event.data === "[DONE]") {
+        data = null;
+      } else {
+        try {
+          data = JSON.parse(event.data)?.choices?.[0]?.delta?.content ?? '';
+        } catch (e) {
+          return '';
+        }
+      }
+      onmessage(data);
+    },
+    onerror(err) {
+      console.log("There was an error from server", err);
+    },
   });
-  const { data } = response;
-  const result = removeNewlines(data.choices?.[0].text)?.split('-').filter(it => Boolean(it));
-  return result;
 }
 
