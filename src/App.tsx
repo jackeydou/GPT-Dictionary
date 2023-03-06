@@ -32,7 +32,6 @@ function App() {
     await openAIWordConversationApi(word, (key: string | null) => {
       if (typeof key === 'string') {
         key = key.replace('$$', '<br />');
-        console.log(key);
         conversationRef.current = `${conversationRef.current}${key}`;
         setConversation(conversationRef.current);
       }
